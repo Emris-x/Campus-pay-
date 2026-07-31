@@ -14,9 +14,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
+      }
+    );
 
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -26,6 +28,7 @@ export function AuthProvider({ children }) {
       setProfile(null);
       return;
     }
+
     supabase
       .from("students")
       .select("*")
@@ -34,8 +37,6 @@ export function AuthProvider({ children }) {
       .then(({ data }) => setProfile(data));
   }, [session]);
 
-  // Students sign in with matric number, which we resolve to the email
-  // on file so Supabase's email/password auth can be reused as-is.
   async function signInWithMatric(matricNumber, password) {
     const { data: match, error: lookupError } = await supabase
       .from("students")
@@ -51,24 +52,31 @@ export function AuthProvider({ children }) {
       email: match.email,
       password,
     });
+
     if (error) throw error;
     return data;
   }
 
-  async function signUp({ fullName, email, matricNumber, registrationNumber, password }) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+  async function signUp({
+    fullName,
+    email,
+    matricNumber,
+    registrationNumber,
+    password,
+  }) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          matric_number: matricNumber,
+          registration_number: registrationNumber,
+        },
+      },
+    });
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from("students").insert({
-        id: data.user.id,
-        full_name: fullName,
-        email,
-        matric_number: matricNumber,
-        registration_number: registrationNumber,
-      });
-      if (profileError) throw profileError;
-    }
+    if (error) throw error;
     return data;
   }
 
@@ -77,7 +85,16 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, signInWithMatric, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        profile,
+        loading,
+        signInWithMatric,
+        signUp,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -85,6 +102,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
   return ctx;
 }
