@@ -1,0 +1,47 @@
+.cp-payment-page {
+  padding: 32px 24px 80px;
+  max-width: 560px;
+}
+
+.cp-payment-page__back {
+  display: inline-block;
+  color: var(--cp-text-dim);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+.cp-payment-page__back:hover { color: var(--cp-text); }
+
+.cp-payment-page__card {
+  padding: 32px;
+}
+.cp-payment-page__card h1 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+.cp-payment-page__blurb {
+  color: var(--cp-text-dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.cp-payment-page__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.cp-payment-page__suggestion {
+  text-align: left;
+  background: var(--cp-bg-raised);
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: var(--cp-text-dim);
+  cursor: pointer;
+}
+.cp-payment-page__suggestion:hover {
+  border-color: var(--cp-green);
+  color: var(--cp-text);
+}

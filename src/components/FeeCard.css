@@ -1,0 +1,64 @@
+.cp-fee-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--cp-bg-card);
+  border: 1px solid var(--cp-border-soft);
+  border-radius: var(--cp-radius-md);
+  padding: 20px;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.cp-fee-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+}
+.cp-fee-card:hover {
+  border-color: var(--accent);
+  background: var(--cp-bg-card-hover);
+  transform: translateY(-2px);
+}
+
+.cp-fee-card__icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+.cp-fee-card__body { flex: 1; min-width: 0; }
+.cp-fee-card__body h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.cp-fee-card__body p {
+  font-size: 0.85rem;
+  color: var(--cp-text-dim);
+  line-height: 1.4;
+}
+.cp-fee-card__note {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.cp-fee-card__arrow {
+  color: var(--cp-text-faint);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}

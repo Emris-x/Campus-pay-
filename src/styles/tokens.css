@@ -1,0 +1,119 @@
+/* ==========================================================================
+   CampusPay Design Tokens
+   Palette: near-black ground, institutional red signature, with green/
+   purple/blue used as functional accents (growth, premium, trust).
+   Typeface: Space Grotesk (display) + Inter (body) + JetBrains Mono (data)
+   ========================================================================== */
+
+:root {
+  /* -- Core surfaces -- */
+  --cp-bg: #0a0a0d;
+  --cp-bg-raised: #131317;
+  --cp-bg-card: #17171c;
+  --cp-bg-card-hover: #1d1d23;
+  --cp-border: #26262e;
+  --cp-border-soft: #1c1c22;
+
+  /* -- Brand -- */
+  --cp-red: #e5252c;
+  --cp-red-dim: #7a1418;
+  --cp-red-glow: rgba(229, 37, 44, 0.35);
+  --cp-black: #131316;
+
+  /* -- Functional accents -- */
+  --cp-green: #1fa971;
+  --cp-green-soft: rgba(31, 169, 113, 0.14);
+  --cp-purple: #8b5cf6;
+  --cp-purple-soft: rgba(139, 92, 246, 0.14);
+  --cp-blue: #3b82f6;
+  --cp-blue-soft: rgba(59, 130, 246, 0.14);
+
+  /* -- Text -- */
+  --cp-text: #f2f1ee;
+  --cp-text-dim: #a8a6b3;
+  --cp-text-faint: #6b6976;
+
+  /* -- Type -- */
+  --cp-font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --cp-font-body: "Inter", "Segoe UI", sans-serif;
+  --cp-font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+
+  /* -- Radius / shadow -- */
+  --cp-radius-sm: 10px;
+  --cp-radius-md: 16px;
+  --cp-radius-lg: 24px;
+  --cp-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: var(--cp-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(229, 37, 44, 0.10), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(139, 92, 246, 0.06), transparent 55%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--cp-font-display);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+button, input, select {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cp-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--cp-red-glow);
+}
+
+.cp-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Pillar divider — echoes the three pillars in the crest, used to mark
+   a meaningful section boundary (never decoratively repeated). */
+.cp-pillars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 18px;
+  opacity: 0.8;
+}
+.cp-pillars span {
+  width: 4px;
+  background: var(--cp-red);
+  border-radius: 2px 2px 0 0;
+}
+.cp-pillars span:nth-child(1) { height: 60%; }
+.cp-pillars span:nth-child(2) { height: 100%; }
+.cp-pillars span:nth-child(3) { height: 60%; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

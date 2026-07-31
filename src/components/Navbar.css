@@ -1,0 +1,43 @@
+.cp-navbar {
+  border-bottom: 1px solid var(--cp-border-soft);
+  background: rgba(10, 10, 13, 0.85);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.cp-navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+
+.cp-navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--cp-font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--cp-text);
+}
+
+.cp-navbar__logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.cp-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cp-navbar__hello {
+  color: var(--cp-text-dim);
+  font-size: 0.9rem;
+  margin-right: 4px;
+}
