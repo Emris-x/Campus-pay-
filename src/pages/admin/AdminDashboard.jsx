@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { Link } from "react-router-dom";
+import { fetchAdminOverview, normalizeError } from "../../admin/services/adminService";
 import "./AdminDashboard.css";
 
 const FEE_LABELS = {
@@ -9,132 +10,120 @@ const FEE_LABELS = {
 };
 
 export default function AdminDashboard() {
-  const [transactions, setTransactions] = useState([]);
+  const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [error, setError] = useState("");
+
+  async function loadOverview() {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await fetchAdminOverview();
+      setOverview(data);
+    } catch (err) {
+      setError(normalizeError(err, "We could not load the overview metrics."));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    loadTransactions();
+    loadOverview();
   }, []);
 
-  async function loadTransactions() {
-    setLoading(true);
-    const { data } = await supabase
-      .from("transactions")
-      .select("*, students(full_name)")
-      .order("created_at", { ascending: false });
-    setTransactions(data ?? []);
-    setLoading(false);
-  }
+  const summaryCards = useMemo(() => {
+    if (!overview) return [];
 
-  async function markVerified(id) {
-    await supabase
-      .from("transactions")
-      .update({ status: "verified", verified_at: new Date().toISOString() })
-      .eq("id", id);
-    loadTransactions();
-  }
-
-  const filtered = useMemo(() => {
-    return transactions.filter((t) => {
-      const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      const q = query.trim().toLowerCase();
-      const matchesQuery =
-        !q ||
-        t.matric_number?.toLowerCase().includes(q) ||
-        t.receipt_number?.toLowerCase().includes(q) ||
-        t.faculty_name?.toLowerCase().includes(q);
-      return matchesStatus && matchesQuery;
-    });
-  }, [transactions, query, statusFilter]);
-
-  const totals = useMemo(() => {
-    const total = transactions.reduce((s, t) => s + Number(t.amount), 0);
-    const pending = transactions.filter((t) => t.status === "pending").length;
-    const verified = transactions.filter((t) => t.status === "verified").length;
-    return { total, pending, verified };
-  }, [transactions]);
+    return [
+      { label: "Students", value: overview.studentCount.toLocaleString("en-NG"), hint: "Registered accounts" },
+      { label: "Transactions", value: overview.transactionCount.toLocaleString("en-NG"), hint: "Recorded attempts" },
+      { label: "Volume", value: `₦${Number(overview.totalVolume || 0).toLocaleString("en-NG")}`, hint: "Total payment value" },
+      { label: "Pending", value: overview.pendingCount.toLocaleString("en-NG"), hint: "Awaiting review" },
+      { label: "Verified", value: overview.verifiedCount.toLocaleString("en-NG"), hint: "Approved payments" },
+      { label: "Failed", value: overview.failedCount.toLocaleString("en-NG"), hint: "Needs follow-up" },
+    ];
+  }, [overview]);
 
   return (
-    <div className="cp-container cp-admin">
-      <h1>Admin dashboard</h1>
-      <p className="cp-admin__sub">All transactions flowing through CampusPay, at a glance.</p>
-
-      <section className="cp-admin__stats">
-        <div className="cp-card cp-stat">
-          <span className="cp-stat__label">Total volume</span>
-          <span className="cp-stat__value">₦{totals.total.toLocaleString("en-NG")}</span>
+    <div className="cp-admin-page">
+      <div className="cp-admin-page__header">
+        <div>
+          <p className="cp-admin-page__eyebrow">Overview</p>
+          <h1>Campus Pay Command Center</h1>
+          <p className="cp-admin-page__sub">Monitor student activity, payment flow, and administration health from a single secure surface.</p>
         </div>
-        <div className="cp-card cp-stat">
-          <span className="cp-stat__label">Pending</span>
-          <span className="cp-stat__value">{totals.pending}</span>
-        </div>
-        <div className="cp-card cp-stat">
-          <span className="cp-stat__label">Verified</span>
-          <span className="cp-stat__value">{totals.verified}</span>
-        </div>
-      </section>
-
-      <div className="cp-admin__controls">
-        <input
-          type="text"
-          placeholder="Search by matric no, receipt no, or faculty…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="cp-admin__search"
-        />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="cp-admin__filter">
-          <option value="all">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="paid">Paid</option>
-          <option value="verified">Verified</option>
-          <option value="failed">Failed</option>
-        </select>
+        <button className="cp-btn cp-btn--primary" onClick={loadOverview} disabled={loading}>
+          {loading ? "Refreshing…" : "Refresh"}
+        </button>
       </div>
 
-      <div className="cp-card cp-admin__table-wrap">
-        {loading ? (
-          <p className="cp-admin__empty">Loading transactions…</p>
-        ) : filtered.length === 0 ? (
-          <p className="cp-admin__empty">No transactions match that search.</p>
-        ) : (
-          <table className="cp-admin__table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Matric No.</th>
-                <th>Fee</th>
-                <th>Faculty</th>
-                <th>Amount</th>
-                <th>Receipt</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.students?.full_name ?? "—"}</td>
-                  <td className="cp-mono">{t.matric_number}</td>
-                  <td>{FEE_LABELS[t.fee_type] ?? t.fee_type}</td>
-                  <td>{t.faculty_name ?? "—"}</td>
-                  <td className="cp-mono">₦{Number(t.amount).toLocaleString("en-NG")}</td>
-                  <td className="cp-mono">{t.receipt_number}</td>
-                  <td><span className={`cp-pill cp-pill--${t.status}`}>{t.status}</span></td>
-                  <td>
-                    {t.status !== "verified" && (
-                      <button className="cp-btn cp-btn--ghost" onClick={() => markVerified(t.id)}>
-                        Mark verified
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {error ? <div className="cp-alert cp-alert--error">{error}</div> : null}
+
+      {loading ? (
+        <div className="cp-card cp-admin-page__state">Loading dashboard metrics…</div>
+      ) : overview ? (
+        <>
+          <section className="cp-admin-grid cp-admin-grid--stats">
+            {summaryCards.map((card) => (
+              <article className="cp-card cp-admin-card" key={card.label}>
+                <p className="cp-admin-card__label">{card.label}</p>
+                <p className="cp-admin-card__value">{card.value}</p>
+                <p className="cp-admin-card__hint">{card.hint}</p>
+              </article>
+            ))}
+          </section>
+
+          <section className="cp-admin-grid cp-admin-grid--two">
+            <div className="cp-card">
+              <div className="cp-admin-page__section-head">
+                <h2>Recent transactions</h2>
+                <Link to="/admin/transactions" className="cp-admin-page__link">View all</Link>
+              </div>
+
+              {overview.recentTransactions.length === 0 ? (
+                <p className="cp-admin-page__empty">No transactions have been recorded yet.</p>
+              ) : (
+                <div className="cp-admin-list">
+                  {overview.recentTransactions.map((transaction) => (
+                    <div className="cp-admin-list__item" key={transaction.id}>
+                      <div>
+                        <p className="cp-admin-list__title">{transaction.students?.full_name || transaction.matric_number || "Student"}</p>
+                        <p className="cp-admin-list__meta">
+                          {transaction.receipt_number} • {FEE_LABELS[transaction.fee_type] || transaction.fee_type}
+                        </p>
+                      </div>
+                      <div className="cp-admin-list__right">
+                        <span className={`cp-pill cp-pill--${transaction.status}`}>{transaction.status}</span>
+                        <span className="cp-admin-list__amount">₦{Number(transaction.amount || 0).toLocaleString("en-NG")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="cp-card">
+              <div className="cp-admin-page__section-head">
+                <h2>Operations</h2>
+              </div>
+              <div className="cp-admin-stack">
+                <Link className="cp-admin-stack__item" to="/admin/users">
+                  <span>Users</span>
+                  <strong>Review student accounts</strong>
+                </Link>
+                <Link className="cp-admin-stack__item" to="/admin/payments">
+                  <span>Payments & Dues</span>
+                  <strong>Track fee categories and totals</strong>
+                </Link>
+                <Link className="cp-admin-stack__item" to="/admin/audit-logs">
+                  <span>Audit Logs</span>
+                  <strong>Inspect admin activity</strong>
+                </Link>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : null}
     </div>
   );
 }

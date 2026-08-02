@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -12,12 +12,15 @@ import RedirectPayment from "./pages/RedirectPayment";
 import CourseRegistrationPayment from "./pages/CourseRegistrationPayment";
 import Receipt from "./pages/Receipt";
 import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminRoutes from "./pages/admin/AdminRoutes";
 
-export default function App() {
+function AppShell() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
-    <AuthProvider>
-      <Navbar />
+    <>
+      {!isAdminRoute && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -57,9 +60,18 @@ export default function App() {
         />
 
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/log" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/admin/*" element={<AdminRoutes />} />
       </Routes>
-      <Footer />
+      {!isAdminRoute && <Footer />}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppShell />
     </AuthProvider>
   );
 }
