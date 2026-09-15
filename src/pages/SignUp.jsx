@@ -13,6 +13,7 @@ export default function SignUp() {
     registrationNumber: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -69,10 +70,33 @@ export default function SignUp() {
             <input id="registrationNumber" type="text" placeholder="Your reg. number" value={form.registrationNumber} onChange={update("registrationNumber")} required />
           </div>
           <div className="cp-field">
-            <label htmlFor="password">Password</label>
-            <input id="password" type="password" placeholder="At least 8 characters" value={form.password} onChange={update("password")} required />
-            <span className="cp-field-hint">You'll use this with your matric number to log in.</span>
-          </div>
+  <label htmlFor="password">Password</label>
+
+  <div className="cp-password-wrap">
+    <input
+      id="password"
+      type={showPassword ? "text" : "password"}
+      placeholder="At least 8 characters"
+      value={form.password}
+      onChange={update("password")}
+      autoComplete="new-password"
+      required
+    />
+
+    <button
+      type="button"
+      className="cp-password-toggle"
+      onClick={() => setShowPassword((visible) => !visible)}
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? "👁️" : "👁️"}
+    </button>
+  </div>
+
+  <span className="cp-field-hint">
+    You'll use this with your matric number to log in.
+  </span>
+</div>
           <button type="submit" className="cp-btn cp-btn--primary cp-btn--full" disabled={busy}>
             {busy ? "Creating account…" : "Sign up"}
           </button>
