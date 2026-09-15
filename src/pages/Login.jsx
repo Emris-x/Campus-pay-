@@ -8,7 +8,8 @@ export default function Login() {
   const navigate = useNavigate();
   const [matric, setMatric] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+const [showPassword, setShowPassword] = useState(false);
+const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleSubmit(e) {
@@ -49,16 +50,29 @@ export default function Login() {
             />
           </div>
           <div className="cp-field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+  <label htmlFor="password">Password</label>
+
+  <div className="cp-password-wrap">
+    <input
+      id="password"
+      type={showPassword ? "text" : "password"}
+      placeholder="••••••••"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      autoComplete="current-password"
+      required
+    />
+
+    <button
+      type="button"
+      className="cp-password-toggle"
+      onClick={() => setShowPassword((visible) => !visible)}
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? "👁️" : "👁️"}
+    </button>
+  </div>
+</div>
           <button type="submit" className="cp-btn cp-btn--primary cp-btn--full" disabled={busy}>
             {busy ? "Logging in…" : "Log in"}
           </button>
