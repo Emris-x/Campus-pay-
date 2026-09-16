@@ -17,9 +17,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
+      }
+    );
 
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -40,14 +42,17 @@ export function AuthProvider({ children }) {
       .eq("id", session.user.id)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (!error) setProfile(data);
-        else setProfile(null);
+        if (!error) {
+          setProfile(data);
+        } else {
+          setProfile(null);
+        }
       });
 
+    // Admin profile is loaded through a secure RPC because
+    // direct client access to admin_profiles is protected by RLS.
     supabase
-      .from("admin_profiles")
-      .select("*")
-      .eq("id", session.user.id)
+      .rpc("get_current_admin_profile")
       .maybeSingle()
       .then(({ data, error }) => {
         if (!error && data) {
@@ -55,78 +60,89 @@ export function AuthProvider({ children }) {
         } else {
           setAdminProfile(null);
         }
+
         setAdminLoading(false);
       });
   }, [session]);
 
   const isAdmin = useMemo(() => {
-    return Boolean(adminProfile?.status === "active" && isAdminRole(adminProfile?.role));
+    return Boolean(
+      adminProfile?.status === "active" &&
+        isAdminRole(adminProfile?.role)
+    );
   }, [adminProfile]);
 
   async function signInWithMatric(matricNumber, password) {
-  const { data: match, error: lookupError } = await supabase
-    .rpc("get_student_email_by_matric", {
-  p_matric_number: matricNumber,
-});
+    const { data: match, error: lookupError } = await supabase.rpc(
+      "get_student_email_by_matric",
+      {
+        p_matric_number: matricNumber,
+      }
+    );
 
-  if (lookupError || !match) {
-    throw new Error("We couldn't find an account with that matric number.");
+    if (lookupError || !match) {
+      throw new Error(
+        "We couldn't find an account with that matric number."
+      );
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: match,
+      password,
+    });
+
+    if (error) throw error;
+
+    return data;
   }
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: match,
-    password,
-  });
-
-  if (error) throw error;
-  return data;
-}
 
   async function signUp({
-  fullName,
-  email,
-  matricNumber,
-  registrationNumber,
-  password,
-}) {
-  const { data, error } = await supabase.auth.signUp({
+    fullName,
     email,
+    matricNumber,
+    registrationNumber,
     password,
-    options: {
-      data: {
+  }) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          matric_number: matricNumber,
+          registration_number: registrationNumber,
+        },
+      },
+    });
+
+    if (error) throw error;
+
+    if (!data.user) {
+      throw new Error("Account creation failed. Please try again.");
+    }
+
+    if (!data.session) {
+      throw new Error(
+        "Account created, but email confirmation is required before you can continue."
+      );
+    }
+
+    const { error: profileError } = await supabase
+      .from("students")
+      .insert({
+        id: data.user.id,
         full_name: fullName,
+        email,
         matric_number: matricNumber,
         registration_number: registrationNumber,
-      },
-    },
-  });
+      });
 
-  if (error) throw error;
+    if (profileError) {
+      throw profileError;
+    }
 
-  if (!data.user) {
-    throw new Error("Account creation failed. Please try again.");
+    return data;
   }
-
-  if (!data.session) {
-    throw new Error(
-      "Account created, but email confirmation is required before you can continue."
-    );
-  }
-
-  const { error: profileError } = await supabase.from("students").insert({
-    id: data.user.id,
-    full_name: fullName,
-    email,
-    matric_number: matricNumber,
-    registration_number: registrationNumber,
-  });
-
-  if (profileError) {
-    throw profileError;
-  }
-
-  return data;
-}
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -160,3 +176,13 @@ export function useAuth() {
 
   return ctx;
 }
+
+For now, make only this change. Don't touch the other admin files yet.
+
+After GitHub/Vercel finishes deploying, go to:
+
+"/admin/login"
+
+Sign in with your admin account and tell me exactly what happens.
+
+Then we'll move to the next issue.
