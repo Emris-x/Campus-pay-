@@ -182,7 +182,3 @@ For now, make only this change. Don't touch the other admin files yet.
 After GitHub/Vercel finishes deploying, go to:
 
 "/admin/login"
-
-Sign in with your admin account and tell me exactly what happens.
-
-Then we'll move to the next issue.
