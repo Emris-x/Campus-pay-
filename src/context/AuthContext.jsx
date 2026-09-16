@@ -84,27 +84,50 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp({
-    fullName,
+  fullName,
+  email,
+  matricNumber,
+  registrationNumber,
+  password,
+}) {
+  const { data, error } = await supabase.auth.signUp({
     email,
-    matricNumber,
-    registrationNumber,
     password,
-  }) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          matric_number: matricNumber,
-          registration_number: registrationNumber,
-        },
+    options: {
+      data: {
+        full_name: fullName,
+        matric_number: matricNumber,
+        registration_number: registrationNumber,
       },
-    });
+    },
+  });
 
-    if (error) throw error;
-    return data;
+  if (error) throw error;
+
+  if (!data.user) {
+    throw new Error("Account creation failed. Please try again.");
   }
+
+  if (!data.session) {
+    throw new Error(
+      "Account created, but email confirmation is required before you can continue."
+    );
+  }
+
+  const { error: profileError } = await supabase.from("students").insert({
+    id: data.user.id,
+    full_name: fullName,
+    email,
+    matric_number: matricNumber,
+    registration_number: registrationNumber,
+  });
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  return data;
+}
 
   async function signOut() {
     await supabase.auth.signOut();
