@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchUsers, normalizeError } from "../../admin/services/adminService";
 
 const PAGE_SIZE = 8;
@@ -11,11 +11,17 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadUsers(nextPage = page) {
+  const loadUsers = useCallback(async (nextPage = 1) => {
     try {
       setLoading(true);
       setError("");
-      const result = await fetchUsers({ search, page: nextPage, pageSize: PAGE_SIZE });
+
+      const result = await fetchUsers({
+        search,
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+      });
+
       setUsers(result.data);
       setCount(result.count);
       setPage(nextPage);
@@ -24,7 +30,7 @@ export default function AdminUsers() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
 
   useEffect(() => {
     loadUsers(1);
@@ -43,7 +49,9 @@ export default function AdminUsers() {
         <div>
           <p className="cp-admin-page__eyebrow">Users</p>
           <h1>Student accounts</h1>
-          <p className="cp-admin-page__sub">Search and review campus users and their profile data.</p>
+          <p className="cp-admin-page__sub">
+            Search and review campus users and their profile data.
+          </p>
         </div>
       </div>
 
@@ -56,19 +64,28 @@ export default function AdminUsers() {
           className="cp-admin-controls__input"
           placeholder="Search by name, matric number, or faculty"
         />
-        <button className="cp-btn cp-btn--ghost" type="submit">Search</button>
+        <button className="cp-btn cp-btn--ghost" type="submit">
+          Search
+        </button>
       </form>
 
       {loading ? (
-        <div className="cp-card cp-admin-page__state">Loading student accounts…</div>
+        <div className="cp-card cp-admin-page__state">
+          Loading student accounts…
+        </div>
       ) : users.length === 0 ? (
-        <div className="cp-card cp-admin-page__state">No users match the current search.</div>
+        <div className="cp-card cp-admin-page__state">
+          No users match the current search.
+        </div>
       ) : (
         <div className="cp-card">
           <div className="cp-admin-page__section-head">
             <h2>Accounts</h2>
-            <p className="cp-admin-page__hint">Showing {users.length} of {count}</p>
+            <p className="cp-admin-page__hint">
+              Showing {users.length} of {count}
+            </p>
           </div>
+
           <div className="cp-admin-table-wrap">
             <table className="cp-admin-table">
               <thead>
@@ -81,6 +98,7 @@ export default function AdminUsers() {
                   <th>Created</th>
                 </tr>
               </thead>
+
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id}>
@@ -89,7 +107,9 @@ export default function AdminUsers() {
                     <td>{user.matric_number}</td>
                     <td>{user.registration_number}</td>
                     <td>{user.faculty || "—"}</td>
-                    <td>{new Date(user.created_at).toLocaleDateString("en-NG")}</td>
+                    <td>
+                      {new Date(user.created_at).toLocaleDateString("en-NG")}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -97,13 +117,23 @@ export default function AdminUsers() {
           </div>
 
           <div className="cp-admin-pagination">
-            <button className="cp-btn cp-btn--ghost" disabled={page <= 1} onClick={() => loadUsers(page - 1)}>
+            <button
+              className="cp-btn cp-btn--ghost"
+              disabled={page <= 1}
+              onClick={() => loadUsers(page - 1)}
+            >
               Previous
             </button>
+
             <span>
               Page {page} of {pageCount}
             </span>
-            <button className="cp-btn cp-btn--ghost" disabled={page >= pageCount} onClick={() => loadUsers(page + 1)}>
+
+            <button
+              className="cp-btn cp-btn--ghost"
+              disabled={page >= pageCount}
+              onClick={() => loadUsers(page + 1)}
+            >
               Next
             </button>
           </div>
