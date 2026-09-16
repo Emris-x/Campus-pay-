@@ -66,8 +66,8 @@ export function AuthProvider({ children }) {
   async function signInWithMatric(matricNumber, password) {
   const { data: match, error: lookupError } = await supabase
     .rpc("get_student_email_by_matric", {
-      matric_number_input: matricNumber,
-    });
+  p_matric_number: matricNumber,
+});
 
   if (lookupError || !match) {
     throw new Error("We couldn't find an account with that matric number.");
