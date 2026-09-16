@@ -64,24 +64,23 @@ export function AuthProvider({ children }) {
   }, [adminProfile]);
 
   async function signInWithMatric(matricNumber, password) {
-    const { data: match, error: lookupError } = await supabase
-      .from("students")
-      .select("email")
-      .eq("matric_number", matricNumber)
-      .maybeSingle();
-
-    if (lookupError || !match) {
-      throw new Error("We couldn't find an account with that matric number.");
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: match.email,
-      password,
+  const { data: match, error: lookupError } = await supabase
+    .rpc("get_student_email_by_matric", {
+      matric_number_input: matricNumber,
     });
 
-    if (error) throw error;
-    return data;
+  if (lookupError || !match) {
+    throw new Error("We couldn't find an account with that matric number.");
   }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: match,
+    password,
+  });
+
+  if (error) throw error;
+  return data;
+}
 
   async function signUp({
   fullName,
