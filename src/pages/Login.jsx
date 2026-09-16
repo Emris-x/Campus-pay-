@@ -72,6 +72,9 @@ const [error, setError] = useState("");
       {showPassword ? "👁️" : "👁️"}
     </button>
   </div>
+            <div className="forgot-password">
+  <a href="/forgot-password">Forgot Password?</a>
+</div>
 </div>
           <button type="submit" className="cp-btn cp-btn--primary cp-btn--full" disabled={busy}>
             {busy ? "Logging in…" : "Log in"}
