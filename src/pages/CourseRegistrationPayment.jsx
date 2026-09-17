@@ -52,6 +52,7 @@ export default function CourseRegistrationPayment() {
         facultyName: selectedFaculty.name,
         facultyAccountNumber: selectedFaculty.account_number,
         amount: Number(amount),
+campusPayCharge: CAMPUS_PAY_CHARGE,
       });
 
       navigate(`/receipt/${txn.id}`);
