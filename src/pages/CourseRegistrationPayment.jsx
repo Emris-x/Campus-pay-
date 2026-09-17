@@ -118,23 +118,31 @@ export default function CourseRegistrationPayment() {
     required={!selectedFaculty}
   />
 
-  {facultySearch && filteredFaculties.length > 0 && (
-    <div className="cp-payment-page__suggestions">
-      {filteredFaculties.map((faculty) => (
-        <button
-          type="button"
-          key={faculty.id}
-          className="cp-payment-page__suggestion"
-          onClick={() => {
-            setSelectedFaculty(faculty);
-            setFacultySearch(faculty.name);
-          }}
-        >
-          {faculty.name}
-        </button>
-      ))}
-    </div>
-  )}
+  {selectedFaculty && (
+  <div className="cp-field">
+    <label>Official faculty / department account</label>
+
+    <input
+      value={selectedFaculty.name}
+      disabled
+    />
+
+    {selectedFaculty.bank_name && (
+      <span className="cp-field-hint">
+        Bank: {selectedFaculty.bank_name}
+      </span>
+    )}
+
+    <input
+      value={selectedFaculty.account_number}
+      disabled
+    />
+
+    <span className="cp-field-hint">
+      This is the official account registered for this faculty / department.
+    </span>
+  </div>
+)}
 
   {facultySearch && filteredFaculties.length === 0 && (
     <span className="cp-field-hint">
