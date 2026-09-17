@@ -70,14 +70,15 @@ export default function AdminFaculties() {
     try {
       setSaving(true);
 
-      const { error: insertError } = await supabase
-        .from("faculties")
-        .insert({
-          name,
-          account_number: accountNumber,
-          bank_name: bankName,
-        });
-
+      
+const { error: insertError } = await supabase.rpc(
+  "admin_create_faculty",
+  {
+    p_name: name,
+    p_account_number: accountNumber,
+    p_bank_name: bankName,
+  }
+);
       if (insertError) throw insertError;
 
       setForm({
