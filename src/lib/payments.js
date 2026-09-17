@@ -24,11 +24,41 @@ export async function createTransaction({
   studentId,
   matricNumber,
   registrationNumber,
-  feeType, // 'school_fee' | 'admission_fee' | 'course_registration'
+  feeType,
   facultyName,
   facultyAccountNumber,
   amount,
+  campusPayCharge = 500,
 }) {
+  const receiptNumber = generateReceiptNumber();
+
+  const courseAmount = Number(amount);
+  const charge = Number(campusPayCharge);
+  const totalAmount = courseAmount + charge;
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .insert({
+      student_id: studentId,
+      matric_number: matricNumber,
+      registration_number: registrationNumber,
+      fee_type: feeType,
+      faculty_name: facultyName ?? null,
+      faculty_account_number: facultyAccountNumber ?? null,
+      amount: courseAmount,
+      campus_pay_charge: charge,
+      total_amount: totalAmount,
+      faculty_payable_amount: courseAmount,
+      receipt_number: receiptNumber,
+      status: "pending",
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
   const receiptNumber = generateReceiptNumber();
 
   const { data, error } = await supabase
