@@ -9,17 +9,22 @@ export default function CourseRegistrationPayment() {
   const navigate = useNavigate();
 
   const [faculties, setFaculties] = useState([]);
+  const [facultyLoading, setFacultyLoading] = useState(true);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [facultySearch, setFacultySearch] = useState("");
   const [amount, setAmount] = useState("");
+  const CAMPUS_PAY_CHARGE = 500;
+  const courseAmount = Number(amount) || 0;
+const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetchFaculties()
-      .then(setFaculties)
-      .catch(() => setFaculties([]));
-  }, []);
+  fetchFaculties()
+    .then(setFaculties)
+    .catch(() => setFaculties([]))
+    .finally(() => setFacultyLoading(false));
+}, []);
 
   const filteredFaculties = faculties.filter((faculty) =>
   faculty.name.toLowerCase().includes(facultySearch.toLowerCase())
@@ -107,6 +112,11 @@ export default function CourseRegistrationPayment() {
             <label htmlFor="faculty">
               Faculty / Department
             </label>
+            {facultyLoading && (
+  <span className="cp-field-hint">
+    Loading faculty directory…
+  </span>
+)}
 
           <div className="cp-field">
   <label htmlFor="facultySearch">
@@ -122,6 +132,7 @@ export default function CourseRegistrationPayment() {
       setFacultySearch(e.target.value);
       setSelectedFaculty(null);
     }}
+    disabled={facultyLoading}
     required={!selectedFaculty}
   />
 
@@ -201,6 +212,23 @@ export default function CourseRegistrationPayment() {
               required
             />
           </div>
+        {amount && Number(amount) > 0 && (
+  <div className="cp-field">
+    <label>Payment breakdown</label>
+
+    <div className="cp-field-hint">
+      Course registration: ₦{courseAmount.toLocaleString()}
+    </div>
+
+    <div className="cp-field-hint">
+      Campus Pay charge: ₦{CAMPUS_PAY_CHARGE.toLocaleString()}
+    </div>
+
+    <div className="cp-field-hint">
+      Total to pay: ₦{totalAmount.toLocaleString()}
+    </div>
+  </div>
+)}
 
           <button
   type="submit"
