@@ -13,23 +13,25 @@ export default function CourseRegistrationPayment() {
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [facultySearch, setFacultySearch] = useState("");
   const [amount, setAmount] = useState("");
-  const CAMPUS_PAY_CHARGE = 500;
-  const courseAmount = Number(amount) || 0;
-const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const CAMPUS_PAY_CHARGE = 500;
+
+  const courseAmount = Number(amount) || 0;
+  const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
+
   useEffect(() => {
-  fetchFaculties()
-    .then(setFaculties)
-    .catch(() => setFaculties([]))
-    .finally(() => setFacultyLoading(false));
-}, []);
+    fetchFaculties()
+      .then(setFaculties)
+      .catch(() => setFaculties([]))
+      .finally(() => setFacultyLoading(false));
+  }, []);
 
   const filteredFaculties = faculties.filter((faculty) =>
-  faculty.name.toLowerCase().includes(facultySearch.toLowerCase())
-);
-  
+    faculty.name.toLowerCase().includes(facultySearch.toLowerCase())
+  );
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -84,13 +86,13 @@ const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
             {error}
           </div>
         )}
-        
-        {faculties.length === 0 && (
-  <div className="cp-alert cp-alert--error">
-    No faculty or department accounts are currently available.
-    Please try again later.
-  </div>
-)}
+
+        {faculties.length === 0 && !facultyLoading && (
+          <div className="cp-alert cp-alert--error">
+            No faculty or department accounts are currently available.
+            Please try again later.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="cp-field">
@@ -105,89 +107,67 @@ const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
 
           <div className="cp-field">
             <label>Registration number</label>
-            <input value={profile?.registration_number ?? ""} disabled />
+            <input
+              value={profile?.registration_number ?? ""}
+              disabled
+            />
           </div>
 
           <div className="cp-field">
-            <label htmlFor="faculty">
+            <label htmlFor="facultySearch">
               Faculty / Department
             </label>
+
             {facultyLoading && (
-  <span className="cp-field-hint">
-    Loading faculty directory…
-  </span>
-)}
+              <span className="cp-field-hint">
+                Loading faculty directory…
+              </span>
+            )}
 
-          <div className="cp-field">
-  <label htmlFor="facultySearch">
-    Faculty / Department
-  </label>
+            <input
+              id="facultySearch"
+              type="text"
+              placeholder="Search faculty or department"
+              value={facultySearch}
+              onChange={(e) => {
+                setFacultySearch(e.target.value);
+                setSelectedFaculty(null);
+              }}
+              disabled={facultyLoading}
+              required={!selectedFaculty}
+            />
 
-  <input
-    id="facultySearch"
-    type="text"
-    placeholder="Search faculty or department"
-    value={facultySearch}
-    onChange={(e) => {
-      setFacultySearch(e.target.value);
-      setSelectedFaculty(null);
-    }}
-    disabled={facultyLoading}
-    required={!selectedFaculty}
-  />
+            {facultySearch && filteredFaculties.length > 0 && (
+              <div className="cp-payment-page__suggestions">
+                {filteredFaculties.map((faculty) => (
+                  <button
+                    type="button"
+                    key={faculty.id}
+                    className="cp-payment-page__suggestion"
+                    onClick={() => {
+                      setSelectedFaculty(faculty);
+                      setFacultySearch(faculty.name);
+                    }}
+                  >
+                    {faculty.name}
+                  </button>
+                ))}
+              </div>
+            )}
 
-  {selectedFaculty && (
-  <div className="cp-field">
-    <label>Official faculty / department account</label>
-
-    <input
-      value={selectedFaculty.name}
-      disabled
-    />
-
-    {selectedFaculty.bank_name && (
-      <span className="cp-field-hint">
-        Bank: {selectedFaculty.bank_name}
-      </span>
-    )}
-
-    <input
-      value={selectedFaculty.account_number}
-      disabled
-    />
-
-    <span className="cp-field-hint">
-      This is the official account registered for this faculty / department.
-    </span>
-  </div>
-)}
-
-  {facultySearch && filteredFaculties.length === 0 && (
-    <span className="cp-field-hint">
-      No matching faculty or department found.
-    </span>
-  )}
-</div>
-              required
-            >
-              <option value="">
-                Select your faculty / department
-              </option>
-
-              {faculties.map((faculty) => (
-                <option key={faculty.id} value={faculty.id}>
-                  {faculty.name}
-                </option>
-              ))}
-            </select>
+            {facultySearch && filteredFaculties.length === 0 && (
+              <span className="cp-field-hint">
+                No matching faculty or department found.
+              </span>
+            )}
           </div>
 
           {selectedFaculty && (
             <div className="cp-field">
-              <label>Official faculty account</label>
+              <label>Official faculty / department account</label>
 
               <input
-                value={selectedFaculty.account_number}
+                value={selectedFaculty.name}
                 disabled
               />
 
@@ -196,11 +176,21 @@ const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
                   Bank: {selectedFaculty.bank_name}
                 </span>
               )}
+
+              <input
+                value={selectedFaculty.account_number}
+                disabled
+              />
+
+              <span className="cp-field-hint">
+                This is the official account registered for this
+                faculty / department.
+              </span>
             </div>
           )}
 
           <div className="cp-field">
-            <label htmlFor="amount">Amount (₦)</label>
+            <label htmlFor="amount">Course registration amount (₦)</label>
 
             <input
               id="amount"
@@ -212,28 +202,32 @@ const totalAmount = courseAmount + CAMPUS_PAY_CHARGE;
               required
             />
           </div>
-        {amount && Number(amount) > 0 && (
-  <div className="cp-field">
-    <label>Payment breakdown</label>
 
-    <div className="cp-field-hint">
-      Course registration: ₦{courseAmount.toLocaleString()}
-    </div>
+          {amount && Number(amount) > 0 && (
+            <div className="cp-field">
+              <label>Payment breakdown</label>
 
-    <div className="cp-field-hint">
-      Campus Pay charge: ₦{CAMPUS_PAY_CHARGE.toLocaleString()}
-    </div>
+              <div className="cp-field-hint">
+                Course registration: ₦
+                {courseAmount.toLocaleString()}
+              </div>
 
-    <div className="cp-field-hint">
-      Total to pay: ₦{totalAmount.toLocaleString()}
-    </div>
-  </div>
-)}
+              <div className="cp-field-hint">
+                Campus Pay charge: ₦
+                {CAMPUS_PAY_CHARGE.toLocaleString()}
+              </div>
+
+              <div className="cp-field-hint">
+                Total to pay: ₦
+                {totalAmount.toLocaleString()}
+              </div>
+            </div>
+          )}
 
           <button
-  type="submit"
-  disabled={busy || faculties.length === 0}
-            className="cp-btn cp-btn--primary cp-btn--full
+            type="submit"
+            className="cp-btn cp-btn--primary cp-btn--full"
+            disabled={busy || facultyLoading || faculties.length === 0}
           >
             {busy ? "Preparing your payment…" : "Continue to pay"}
           </button>
