@@ -11,7 +11,6 @@ export default function CourseRegistrationPayment() {
   const [faculties, setFaculties] = useState([]);
   const [facultyLoading, setFacultyLoading] = useState(true);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
-  const [facultySearch, setFacultySearch] = useState("");
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,10 +26,6 @@ export default function CourseRegistrationPayment() {
       .catch(() => setFaculties([]))
       .finally(() => setFacultyLoading(false));
   }, []);
-
-  const filteredFaculties = faculties.filter((faculty) =>
-    faculty.name.toLowerCase().includes(facultySearch.toLowerCase())
-  );
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -114,52 +109,35 @@ export default function CourseRegistrationPayment() {
           </div>
 
           <div className="cp-field">
-            <label htmlFor="facultySearch">
+            <label htmlFor="faculty">
               Faculty / Department
             </label>
 
-            {facultyLoading && (
-              <span className="cp-field-hint">
-                Loading faculty directory…
-              </span>
-            )}
-
-            <input
-              id="facultySearch"
-              type="text"
-              placeholder="Search faculty or department"
-              value={facultySearch}
+            <select
+              id="faculty"
+              value={selectedFaculty?.id ?? ""}
               onChange={(e) => {
-                setFacultySearch(e.target.value);
-                setSelectedFaculty(null);
+                const faculty = faculties.find(
+                  (item) => item.id === e.target.value
+                );
+
+                setSelectedFaculty(faculty ?? null);
               }}
-              disabled={facultyLoading}
-              required={!selectedFaculty}
-            />
+              disabled={facultyLoading || faculties.length === 0}
+              required
+            >
+              <option value="">
+                {facultyLoading
+                  ? "Loading faculty accounts..."
+                  : "Select faculty / department"}
+              </option>
 
-            {facultySearch && filteredFaculties.length > 0 && (
-              <div className="cp-payment-page__suggestions">
-                {filteredFaculties.map((faculty) => (
-                  <button
-                    type="button"
-                    key={faculty.id}
-                    className="cp-payment-page__suggestion"
-                    onClick={() => {
-                      setSelectedFaculty(faculty);
-                      setFacultySearch(faculty.name);
-                    }}
-                  >
-                    {faculty.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {facultySearch && filteredFaculties.length === 0 && (
-              <span className="cp-field-hint">
-                No matching faculty or department found.
-              </span>
-            )}
+              {faculties.map((faculty) => (
+                <option key={faculty.id} value={faculty.id}>
+                  {faculty.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {selectedFaculty && (
@@ -190,7 +168,9 @@ export default function CourseRegistrationPayment() {
           )}
 
           <div className="cp-field">
-            <label htmlFor="amount">Course registration amount (₦)</label>
+            <label htmlFor="amount">
+              Course registration amount (₦)
+            </label>
 
             <input
               id="amount"
@@ -227,9 +207,15 @@ export default function CourseRegistrationPayment() {
           <button
             type="submit"
             className="cp-btn cp-btn--primary cp-btn--full"
-            disabled={busy || facultyLoading || faculties.length === 0}
+            disabled={
+              busy ||
+              facultyLoading ||
+              faculties.length === 0
+            }
           >
-            {busy ? "Preparing your payment…" : "Continue to pay"}
+            {busy
+              ? "Preparing your payment…"
+              : "Continue to pay"}
           </button>
         </form>
       </div>
