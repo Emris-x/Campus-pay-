@@ -11,6 +11,7 @@ import AdminNotifications from "./AdminNotifications";
 import AdminAdmins from "./AdminAdmins";
 import AdminAuditLogs from "./AdminAuditLogs";
 import AdminSettings from "./AdminSettings";
+import AdminFaculties from "./AdminFaculties";
 
 export default function AdminRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AdminRoutes() {
           <Route path="audit-logs" element={<AdminAuditLogs />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
+          <Route path="faculties" element={<AdminFaculties />} />
         </Routes>
       </AdminLayout>
     </AdminProtectedRoute>
