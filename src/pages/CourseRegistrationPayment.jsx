@@ -79,6 +79,13 @@ export default function CourseRegistrationPayment() {
             {error}
           </div>
         )}
+        
+        {faculties.length === 0 && (
+  <div className="cp-alert cp-alert--error">
+    No faculty or department accounts are currently available.
+    Please try again later.
+  </div>
+)}
 
         <form onSubmit={handleSubmit}>
           <div className="cp-field">
@@ -196,9 +203,9 @@ export default function CourseRegistrationPayment() {
           </div>
 
           <button
-            type="submit"
-            className="cp-btn cp-btn--primary cp-btn--full"
-            disabled={busy}
+  type="submit"
+  disabled={busy || faculties.length === 0}
+            className="cp-btn cp-btn--primary cp-btn--full
           >
             {busy ? "Preparing your payment…" : "Continue to pay"}
           </button>
