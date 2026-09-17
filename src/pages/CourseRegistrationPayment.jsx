@@ -10,6 +10,7 @@ export default function CourseRegistrationPayment() {
 
   const [faculties, setFaculties] = useState([]);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [facultySearch, setFacultySearch] = useState("");
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,6 +21,10 @@ export default function CourseRegistrationPayment() {
       .catch(() => setFaculties([]));
   }, []);
 
+  const filteredFaculties = faculties.filter((faculty) =>
+  faculty.name.toLowerCase().includes(facultySearch.toLowerCase())
+);
+  
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -96,16 +101,47 @@ export default function CourseRegistrationPayment() {
               Faculty / Department
             </label>
 
-            <select
-              id="faculty"
-              value={selectedFaculty?.id ?? ""}
-              onChange={(e) => {
-                const faculty = faculties.find(
-                  (f) => f.id === e.target.value
-                );
+          <div className="cp-field">
+  <label htmlFor="facultySearch">
+    Faculty / Department
+  </label>
 
-                setSelectedFaculty(faculty ?? null);
-              }}
+  <input
+    id="facultySearch"
+    type="text"
+    placeholder="Search faculty or department"
+    value={facultySearch}
+    onChange={(e) => {
+      setFacultySearch(e.target.value);
+      setSelectedFaculty(null);
+    }}
+    required={!selectedFaculty}
+  />
+
+  {facultySearch && filteredFaculties.length > 0 && (
+    <div className="cp-payment-page__suggestions">
+      {filteredFaculties.map((faculty) => (
+        <button
+          type="button"
+          key={faculty.id}
+          className="cp-payment-page__suggestion"
+          onClick={() => {
+            setSelectedFaculty(faculty);
+            setFacultySearch(faculty.name);
+          }}
+        >
+          {faculty.name}
+        </button>
+      ))}
+    </div>
+  )}
+
+  {facultySearch && filteredFaculties.length === 0 && (
+    <span className="cp-field-hint">
+      No matching faculty or department found.
+    </span>
+  )}
+</div>
               required
             >
               <option value="">
