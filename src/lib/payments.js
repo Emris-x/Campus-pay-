@@ -48,29 +48,6 @@ export async function createTransaction({
     .single();
 
   if (error) throw error;
-
-  // ------------------------------------------------------------------
-  // BANK / PAYMENT-GATEWAY INTEGRATION — placeholder
-  // ------------------------------------------------------------------
-  // Once bank API credentials are available, call out to them here to:
-  //   1. Verify facultyAccountNumber against the bank's records
-  //      (surface a "did you mean...?" suggestion if it's close but not
-  //      an exact match — this is what powers the faculty dropdown).
-  //   2. Kick off the actual transfer/card charge, or return a payment
-  //      link for mobile transfer / card checkout.
-  //   3. Update the transaction's `payment_reference` and `status`
-  //      once the bank confirms the transfer.
-  //
-  // const bankResult = await initiateBankPayment({
-  //   accountNumber: facultyAccountNumber,
-  //   amount,
-  //   reference: receiptNumber,
-  // });
-  // await supabase.from("transactions")
-  //   .update({ payment_reference: bankResult.reference, status: "paid" })
-  //   .eq("id", data.id);
-  // ------------------------------------------------------------------
-
   return data;
 }
 
