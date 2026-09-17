@@ -20,47 +20,98 @@ export default function Receipt() {
   }, [id]);
 
   if (loading) {
-    return <div className="cp-container cp-payment-page">Loading your receipt…</div>;
+    return (
+      <div className="cp-container cp-payment-page">
+        Loading your receipt…
+      </div>
+    );
   }
 
   if (!transaction) {
     return (
       <div className="cp-container cp-payment-page">
         <p>We couldn't find that receipt.</p>
-        <Link to="/dashboard" className="cp-btn cp-btn--ghost">Back to dashboard</Link>
+        <Link to="/dashboard" className="cp-btn cp-btn--ghost">
+          Back to dashboard
+        </Link>
       </div>
     );
   }
 
+  const courseAmount = Number(transaction.amount) || 0;
+  const campusPayCharge = Number(transaction.campus_pay_charge) || 0;
+  const totalAmount =
+    Number(transaction.total_amount) || courseAmount + campusPayCharge;
+
   return (
     <div className="cp-container cp-payment-page">
-      <Link to="/dashboard" className="cp-payment-page__back">← Back to dashboard</Link>
+      <Link to="/dashboard" className="cp-payment-page__back">
+        ← Back to dashboard
+      </Link>
+
       <div className="cp-card cp-receipt">
         <div className="cp-receipt__header">
           <img src="/logo.png" alt="" className="cp-receipt__logo" />
-          <span className={`cp-pill cp-pill--${transaction.status}`}>{transaction.status}</span>
+          <span className={`cp-pill cp-pill--${transaction.status}`}>
+            {transaction.status}
+          </span>
         </div>
 
         <h1>Payment receipt</h1>
-        <p className="cp-receipt__number">{transaction.receipt_number}</p>
+        <p className="cp-receipt__number">
+          {transaction.receipt_number}
+        </p>
 
         <div className="cp-receipt__rows">
           <Row label="Fee type" value="Course registration" />
-          <Row label="Full name" value={transaction.matric_number ? undefined : "—"} hide />
           <Row label="Matric number" value={transaction.matric_number} />
-          <Row label="Registration number" value={transaction.registration_number} />
-          <Row label="Faculty account" value={transaction.faculty_account_number} />
-          {transaction.faculty_name && <Row label="Faculty" value={transaction.faculty_name} />}
-          <Row label="Amount" value={`₦${Number(transaction.amount).toLocaleString("en-NG")}`} />
-          <Row label="Date" value={new Date(transaction.created_at).toLocaleString("en-NG")} />
+          <Row
+            label="Registration number"
+            value={transaction.registration_number}
+          />
+          <Row
+            label="Faculty account"
+            value={transaction.faculty_account_number}
+          />
+
+          {transaction.faculty_name && (
+            <Row label="Faculty" value={transaction.faculty_name} />
+          )}
+
+          <Row
+            label="Course registration"
+            value={`₦${courseAmount.toLocaleString("en-NG")}`}
+          />
+
+          <Row
+            label="Campus Pay charge"
+            value={`₦${campusPayCharge.toLocaleString("en-NG")}`}
+          />
+
+          <Row
+            label="Total amount"
+            value={`₦${totalAmount.toLocaleString("en-NG")}`}
+          />
+
+          <Row
+            label="Date"
+            value={new Date(transaction.created_at).toLocaleString("en-NG")}
+          />
         </div>
 
-        <div className="cp-alert cp-alert--success" style={{ marginTop: 20 }}>
-          Take this receipt — along with your bank payment confirmation — to your faculty office for stamping and
-          verification.
+        <div
+          className="cp-alert cp-alert--success"
+          style={{ marginTop: 20 }}
+        >
+          Take this receipt — along with your bank payment confirmation —
+          to your faculty office for stamping and verification.
         </div>
 
-        <button className="cp-btn cp-btn--ghost cp-btn--full" onClick={() => window.print()} style={{ marginTop: 12 }}>
+        <button
+          className="cp-btn cp-btn--ghost cp-btn--full"
+          onClick={() => window.print()}
+          style={{ marginTop: 12 }}
+        >
           Print / save as PDF
         </button>
       </div>
@@ -68,12 +119,11 @@ export default function Receipt() {
   );
 }
 
-function Row({ label, value, hide }) {
-  if (hide) return null;
+function Row({ label, value }) {
   return (
     <div className="cp-receipt__row">
       <span>{label}</span>
-      <span>{value}</span>
+      <span>{value ?? "—"}</span>
     </div>
   );
 }
