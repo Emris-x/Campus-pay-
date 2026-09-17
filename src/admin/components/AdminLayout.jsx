@@ -6,6 +6,7 @@ import "../../pages/admin/AdminDashboard.css";
 const navItems = [
   { label: "Overview", path: "/admin" },
   { label: "Users", path: "/admin/users" },
+  { label: "Faculty Accounts", path: "/admin/faculties" },
   { label: "Transactions", path: "/admin/transactions" },
   { label: "Payments & Dues", path: "/admin/payments" },
   { label: "Wallet", path: "/admin/wallet" },
