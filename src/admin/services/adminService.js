@@ -129,22 +129,18 @@ export async function fetchTransactions({ search = "", status = "all", feeType =
 export async function verifyTransaction(transactionId) {
   const actorId = await getAuthenticatedUserId();
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("transactions")
     .update({
       status: "verified",
       verified_at: new Date().toISOString(),
     })
-    .eq("id", transactionId)
-    .select()
-    .single();
+    .eq("id", transactionId);
 
   if (error) {
     throw error;
   }
 
-  // Record the verification in the audit trail.
-  // The transaction itself has already been successfully verified.
   try {
     await recordAuditEvent({
       actorId,
@@ -162,7 +158,7 @@ export async function verifyTransaction(transactionId) {
     );
   }
 
-  return data;
+  return true;
 }
 export async function fetchPaymentsSummary() {
   const { data, error } = await supabase.from("transactions").select("id, amount, fee_type, status");
