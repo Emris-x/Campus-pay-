@@ -126,7 +126,6 @@ export async function fetchTransactions({ search = "", status = "all", feeType =
   return { data: data ?? [], count: count ?? 0 };
 }
 
-expor
 export async function verifyTransaction(transactionId) {
   const actorId = await getAuthenticatedUserId();
 
