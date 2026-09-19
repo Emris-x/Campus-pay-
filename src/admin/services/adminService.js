@@ -126,29 +126,45 @@ export async function fetchTransactions({ search = "", status = "all", feeType =
   return { data: data ?? [], count: count ?? 0 };
 }
 
+expor
 export async function verifyTransaction(transactionId) {
   const actorId = await getAuthenticatedUserId();
 
   const { data, error } = await supabase
     .from("transactions")
-    .update({ status: "verified", verified_at: new Date().toISOString() })
+    .update({
+      status: "verified",
+      verified_at: new Date().toISOString(),
+    })
     .eq("id", transactionId)
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  await recordAuditEvent({
-    actorId,
-    action: "verified_transaction",
-    entityType: "transaction",
-    entityId: transactionId,
-    details: { status: "verified" },
-  });
+  // Record the verification in the audit trail.
+  // The transaction itself has already been successfully verified.
+  try {
+    await recordAuditEvent({
+      actorId,
+      action: "verified_transaction",
+      entityType: "transaction",
+      entityId: transactionId,
+      details: {
+        status: "verified",
+      },
+    });
+  } catch (auditError) {
+    console.warn(
+      "Transaction verified, but audit log could not be recorded:",
+      auditError
+    );
+  }
 
   return data;
 }
-
 export async function fetchPaymentsSummary() {
   const { data, error } = await supabase.from("transactions").select("id, amount, fee_type, status");
 
