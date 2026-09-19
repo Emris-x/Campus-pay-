@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { fetchTransactions } from "../lib/payments";
 import FeeCard from "../components/FeeCard";
@@ -11,39 +11,88 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const loadTransactions = useCallback(async () => {
+    if (!session?.user?.id) {
+      setTransactions([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const data = await fetchTransactions(session.user.id);
+
+      setTransactions(data ?? []);
+    } catch (error) {
+      console.error("Failed to load transactions:", error);
+      setTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.user?.id]);
+
   useEffect(() => {
-    if (!session?.user) return;
+    loadTransactions();
+  }, [loadTransactions]);
 
-    setLoading(true);
+  useEffect(() => {
+    const handleFocus = () => {
+      loadTransactions();
+    };
 
-    fetchTransactions(session.user.id)
-      .then(setTransactions)
-      .catch(() => setTransactions([]))
-      .finally(() => setLoading(false));
-  }, [session]);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadTransactions();
+      }
+    };
 
-  // Total amount the student is actually expected to pay/payments created,
-  // including the Campus Pay service charge.
-  const totalPaid = transactions
-    .filter((transaction) => transaction.status !== "failed")
-    .reduce((sum, transaction) => {
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, [loadTransactions]);
+
+  const validTransactions = transactions.filter(
+    (transaction) => transaction.status !== "failed"
+  );
+
+  const totalPaid = validTransactions.reduce(
+    (sum, transaction) => {
       const totalAmount =
         Number(transaction.total_amount) ||
         Number(transaction.amount) ||
         0;
 
       return sum + totalAmount;
-    }, 0);
+    },
+    0
+  );
 
   const pendingCount = transactions.filter(
     (transaction) => transaction.status === "pending"
+  ).length;
+
+  const verifiedCount = transactions.filter(
+    (transaction) => transaction.status === "verified"
   ).length;
 
   return (
     <div className="cp-container cp-dashboard">
       <section className="cp-dashboard__hero">
         <div>
-          <p className="cp-dashboard__eyebrow">Your home base</p>
+          <p className="cp-dashboard__eyebrow">
+            Your home base
+          </p>
 
           <h1>
             Hey, {profile?.full_name?.split(" ")[0] ?? "there"}.
@@ -73,6 +122,16 @@ export default function Dashboard() {
 
           <span className="cp-stat__value">
             {pendingCount}
+          </span>
+        </div>
+
+        <div className="cp-card cp-stat">
+          <span className="cp-stat__label">
+            Verified payments
+          </span>
+
+          <span className="cp-stat__value">
+            {verifiedCount}
           </span>
         </div>
 
@@ -140,8 +199,9 @@ export default function Dashboard() {
             </p>
           ) : transactions.length === 0 ? (
             <p className="cp-dashboard__empty">
-              Nothing here yet. Once you make a payment, it'll show up
-              in this list with a receipt you can pull up any time.
+              Nothing here yet. Once you make a payment,
+              it'll show up in this list with a receipt you
+              can pull up any time.
             </p>
           ) : (
             transactions.map((transaction) => (
