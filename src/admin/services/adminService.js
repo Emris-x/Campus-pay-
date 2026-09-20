@@ -219,34 +219,29 @@ export async function fetchTransactions({
  * the student's payment manually.
  */
 export async function verifyTransaction(transactionId) {
-  if (!transactionId) {
-    throw new Error("Transaction ID is required.");
-  }
+  const actorId = await getAuthenticatedUserId();
 
-  const { data, error } = await supabase.rpc(
-    "admin_verify_transaction",
-    {
-      p_transaction_id: transactionId,
-    }
-  );
+  const { data, error } = await supabase
+    .from("transactions")
+    .update({
+      status: "verified",
+      verified_at: new Date().toISOString(),
+    })
+    .eq("id", transactionId)
+    .select("id, status, verified_at")
+    .single();
 
   if (error) {
-    throw new Error(
-      normalizeError(
-        error,
-        "Unable to verify this transaction. Please try again."
-      )
-    );
+    throw error;
   }
 
   if (!data) {
-    throw new Error(
-      "The transaction could not be verified."
-    );
+    throw new Error("The transaction could not be verified.");
   }
 
   try {
     await recordAuditEvent({
+      actorId,
       action: "verified_transaction",
       entityType: "transaction",
       entityId: transactionId,
