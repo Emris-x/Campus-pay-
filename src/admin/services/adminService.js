@@ -223,22 +223,12 @@ export async function verifyTransaction(transactionId) {
     throw new Error("Transaction ID is required.");
   }
 
-  await getAuthenticatedUserId();
-
-  const verifiedAt = new Date().toISOString();
-
-  const {
-    data,
-    error,
-  } = await supabase
-    .from("transactions")
-    .update({
-      status: "verified",
-      verified_at: verifiedAt,
-    })
-    .eq("id", transactionId)
-    .select("id, status, verified_at")
-    .maybeSingle();
+  const { data, error } = await supabase.rpc(
+    "admin_verify_transaction",
+    {
+      p_transaction_id: transactionId,
+    }
+  );
 
   if (error) {
     throw new Error(
@@ -249,25 +239,12 @@ export async function verifyTransaction(transactionId) {
     );
   }
 
-  /**
-   * Important:
-   * Supabase can return no error when an UPDATE affects
-   * zero rows because of RLS.
-   *
-   * Therefore we explicitly check that a transaction
-   * was actually returned after the update.
-   */
   if (!data) {
     throw new Error(
-      "The transaction was not verified. Your admin account does not have permission to verify this payment."
+      "The transaction could not be verified."
     );
   }
 
-  /**
-   * The transaction has already been successfully verified.
-   * If the audit table is unavailable, do not undo the
-   * successful verification.
-   */
   try {
     await recordAuditEvent({
       action: "verified_transaction",
